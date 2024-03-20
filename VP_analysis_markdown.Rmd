@@ -5,6 +5,7 @@ date: "2024-03-11"
 ---
 
 ```{r setup, echo=FALSE,warning=FALSE,include=FALSE}
+library(dplyr)
 library(ggplot2)
 #First upload rain data and get max and total
 noaa<-read.csv("Monthly_NOAA.csv")
@@ -57,6 +58,11 @@ for (i in unique(vpall$Location)){
 
 
 ```{r,warning=FALSE,echo=FALSE}
+vp2<-merge(vpall,vpmax,by=c("Location","VP_Name","wtr_yr"))
+vp2<-vp2[vp2$Water_Level<100,]
+vp3max<-aggregate(cbind(days,Water_Level)~Location,vp2,FUN=mean)
+dsvp<-vp2[vp2$Location=="delsol_caminocorto",]
+
 vpmax<-vpmax[vpmax$Water_Level<90,]
 for (i in unique(vpmax$Location)){
   p<-vpmax[vpmax$Location==i,]
@@ -75,6 +81,71 @@ for (i in unique(vpmax$Location)){
   print(q)
 }
 ```
+
+#Relation between water level and days inundated
+
+```{r,warning=FALSE,echo=FALSE}
+for (i in unique(vp2$wtr_yr)){
+  p<-vp2[vp2$wtr_yr==i,]
+  q<- ggplot(p,aes(x=Water_Level)) +
+    geom_point(aes(y=days, color=Location))+ylab("Days inundated")+xlab("Maximum Water Level")+ 
+    theme_bw()+
+    theme(axis.title.y = element_text(size=18,margin = margin(t = 0, r = 10, b = 0, l = 20)), 
+          axis.title.y.right = element_text(size=15,margin = margin(t = 0, r = 0, b = 0, l = 20)),
+          axis.title.x=element_text(size=18), axis.text.x=element_text(size=18),
+          axis.text.y = element_text(size=18),title =element_text(size=18, face='bold'),
+          strip.text.y = element_text(size = 18),
+          legend.text = element_text(size=12),
+          legend.title = element_text(size=12),
+          legend.position = "right")+ggtitle(p$wtr_yr)+
+    guides(fill=guide_legend(ncol=2))
+  print(q)
+}
+```
+
+#Max of all years
+```{r,warning=FALSE,echo=FALSE}
+vp3<-vp2 %>%
+  select(Water_Level, days, wtr_yr,Location,VP_Name) %>%
+  group_by(Location,VP_Name) %>%
+  filter(Water_Level==max(Water_Level)) %>%
+  ungroup()
+vp3<-vp3[vp3$Location!="storke_ranch",]
+
+vp4<-vp2 %>%
+  select(Water_Level, days, wtr_yr,Location) %>%
+  group_by(Location) %>%
+  filter(Water_Level==max(Water_Level)) %>%
+  ungroup()
+
+ggplot(vp3,aes(x=Water_Level)) +
+  geom_point(aes(y=days, shape=Location,color=wtr_yr,size=2),size=3)+ylab("Days inundated")+xlab("Maximum Water Level")+ 
+  theme_bw()+ylim(0,250)+
+  scale_shape_manual(values = c(8,16,17,18,15,6)) +
+  scale_color_manual(values = c("darkmagenta","#0CB702","blue"))+
+  theme(axis.title.y = element_text(size=18,margin = margin(t = 0, r = 10, b = 0, l = 20)), 
+        axis.title.y.right = element_text(size=15,margin = margin(t = 0, r = 0, b = 0, l = 20)),
+        axis.title.x=element_text(size=18), axis.text.x=element_text(size=18),
+        axis.text.y = element_text(size=18),title =element_text(size=18, face='bold'),
+        strip.text.y = element_text(size = 18),
+        legend.text = element_text(size=12),
+        legend.title = element_text(size=12),
+        legend.position = "right")+ggtitle("Maximum Water Level over all years")
+
+ggplot(vp3,aes(x=Water_Level)) +
+  geom_point(aes(y=days, color=wtr_yr,size=2),size=2)+ylab("Days inundated")+xlab("Maximum Water Level")+ 
+  theme_bw()+
+  theme(axis.title.y = element_text(size=18,margin = margin(t = 0, r = 10, b = 0, l = 20)), 
+        axis.title.y.right = element_text(size=15,margin = margin(t = 0, r = 0, b = 0, l = 20)),
+        axis.title.x=element_text(size=18), axis.text.x=element_text(size=18),
+        axis.text.y = element_text(size=18),title =element_text(size=18, face='bold'),
+        strip.text.y = element_text(size = 18),
+        legend.text = element_text(size=12),
+        legend.title = element_text(size=12),
+        legend.position = "right")+ggtitle("Maximum Water Level over all years")
+```
+
+
 
 ## Water Quality
 

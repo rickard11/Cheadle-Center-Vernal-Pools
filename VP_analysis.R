@@ -14,13 +14,18 @@ vpq<-vp[vp$Water_Level!=0,]
 #############################
 ##Temperary until 2024 water year is over
 vpq<-vpq[vpq$wtr_yr!="WY24",]
+
+#Water depth is supposed to be taken once a week, so 7 days is applied to each measurement
+#In the future we should change this to actually count the days between measurements
 vpq$days<-7
+#Summing the total number of days that is inundated
 vpqag<-aggregate(days~Location+VP_Name+wtr_yr,vpq,FUN=sum)
+#Finding the max depth per year per pool
 vpmax<-aggregate(Water_Level~Location+VP_Name+wtr_yr,vp,FUN=max)
 vpqag
 
 
-
+#Merge vp and rainfall data
 vpall<-merge(vpqag,noaayrly,by="wtr_yr",all.x=TRUE,all.y=TRUE)
 vpall<-vpall[!is.na(vpall$VP_Name),]
 str(vpall)
